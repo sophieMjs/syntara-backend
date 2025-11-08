@@ -1,0 +1,12 @@
+# Dependencias
+/node_modules
+
+# Archivos del IDE (WebStorm)
+.idea/
+
+# Archivos del sistema
+.DS_Store
+
+# Archivos de build
+/dist
+/build
