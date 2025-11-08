@@ -10,3 +10,5 @@
 # Archivos de build
 /dist
 /build
+
+git rm --cached .env
