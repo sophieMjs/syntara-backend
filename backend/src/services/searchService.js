@@ -14,6 +14,7 @@ class SearchService {
         this.ai = new OpenAIAdapter();
     }
 
+
     async search({ userId, product, quantity = 1, unit = null, stores = [] }) {
         // 1️⃣ Construir el prompt
         const builder = this.promptFactory.getPromptBuilder("search");
