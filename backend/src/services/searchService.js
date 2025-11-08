@@ -9,8 +9,8 @@ class SearchService {
     constructor() {
         this.promptFactory = new PromptBuilderFactory();
         // this.parserFactory = new ParserFactory(); // <== ELIMINAR
-        this.searchRepo = new SearchRepository();
-        this.priceRepo = new PriceRecordRepository();
+        this.searchRepo = SearchRepository;
+        this.priceRepo = PriceRecordRepository;
         this.ai = new OpenAIAdapter();
     }
 

@@ -1,14 +1,16 @@
 // services/subscriptionService.js
 
 const SubscriptionRepository = require("../repositories/subscriptionRepo");
+const UserRepository = require("../repositories/userRepo");
 const SearchRepository = require("../repositories/searchRepo");
 
 class SubscriptionService {
     constructor() {
-        this.subRepo = new SubscriptionRepository();
-        this.searchRepo = new SearchRepository();
+        this.subscriptionRepo = SubscriptionRepository; // <-- CORREGIDO
+        this.userRepo = UserRepository; // <-- CORREGIDO
+        this.searchRepo = SearchRepository; // <-- CORREGID
 
-        // Planes base del producto
+        // Planes base del productos
         this.plans = {
             Saver: {
                 price: 3000,
