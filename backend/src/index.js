@@ -10,7 +10,10 @@ const { join } = require('path');
 
 // --- IMPORTACIONES DEL SERVIDOR (con require) ---
 const express = require('express');
-const User = require('./User');
+
+// --- CORRECCIÓN: La ruta correcta es './models/User' ---
+const User = require('./models/User'); //
+
 const cors = require('cors');
 const authRoutes = require('./routes/authRoutes.js');
 const reportRoutes = require('./routes/reportRoutes.js');
@@ -20,6 +23,7 @@ const userRoutes = require('./routes/userRoutes.js');
 // -----------------------------------------
 
 // --- Lógica de Rutas (Spawn) ---
+// Verifica que esta ruta sea correcta según tu estructura de carpetas
 const announcerPath = join(__dirname, 'network/announcer/discovery-announcer.js');
 
 // 'port' ahora leerá correctamente el .env
@@ -68,6 +72,10 @@ app.use(express.json());
 // Esto imprimirá CADA petición que llegue del frontend
 app.use((req, res, next) => {
     console.log(`[CONEXIÓN FRONTEND] ${req.method} ${req.originalUrl}`);
+
+    // 💡 AÑADE ESTA LÍNEA PARA VER EL BODY:
+    console.log('[REQ.BODY]:', req.body);
+
     next();
 });
 // ----------------------------------------------------
