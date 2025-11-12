@@ -1,48 +1,25 @@
+const mongoose = require('mongoose');
 require('dotenv').config();
 
-const { MongoClient } = require('mongodb');
+// Leemos las variables de tu .env
+const MONGODB_HOST = process.env.MONGODB_HOST || 'localhost';
+const MONGODB_PORT = process.env.MONGODB_PORT || 27017;
+const MONGODB_DB_NAME = process.env.MONGODB_DB_NAME || 'SyntaraFlow';
 
-const dbHost = process.env.MONGODB_HOST;
-const dbPort = process.env.MONGODB_PORT;
-const dbName = process.env.MONGODB_DB_NAME;
+const MONGODB_URI = `mongodb://${MONGODB_HOST}:${MONGODB_PORT}/${MONGODB_DB_NAME}`;
 
-const uri = `mongodb://${dbHost}:${dbPort}`;
-const client = new MongoClient(uri);
+// Usamos Mongoose para conectar, no MongoClient
+mongoose.connect(MONGODB_URI, {
+    useNewUrlParser: true,
+    useUnifiedTopology: true,
+})
+    .then(() => {
+        console.log(`✅ Conexión con Mongoose exitosa: ${MONGODB_URI}`);
+    })
+    .catch((err) => {
+        console.error('Error al conectar Mongoose:', err);
+        process.exit(1); // Si Mongoose no conecta, cerramos la app
+    });
 
-let db; // Instancia Singleton
-
-// Conecta a la BD (llamar 1 vez)
-async function connectToDatabase() {
-    try {
-        await client.connect();
-        db = client.db(dbName);
-        console.log(`✅ Conectado a MongoDB (${dbName} en ${dbHost})`);
-    } catch (e) {
-        console.error("Falló la conexión a la base de datos", e);
-        process.exit(1);
-    }
-}
-
-// Obtiene la instancia de la BD
-function getDb() {
-    if (!db) {
-        throw new Error("connectToDatabase() debe llamarse primero");
-    }
-    return db;
-}
-
-// Cierra la conexión (para pruebas)
-async function closeDatabaseConnection() {
-    try {
-        await client.close();
-        console.log("🔌 Conexión a MongoDB cerrada.");
-    } catch (e) {
-        console.error("Error cerrando la conexión", e);
-    }
-}
-
-module.exports = {
-    connectToDatabase,
-    getDb,
-    closeDatabaseConnection
-};
+// No exportamos 'getDb', Mongoose maneja la conexión globalmente.
+module.exports = mongoose;
