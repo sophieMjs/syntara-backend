@@ -15,7 +15,6 @@ class OpenAIClient {
         });
 
         this.model = process.env.OPENAI_MODEL || "gpt-5-mini";
-        this.temperature = 0.1;
         this.maxTokens = 2000;
 
         OpenAIClient.instance = this;
@@ -25,8 +24,7 @@ class OpenAIClient {
         const response = await this.client.chat.completions.create({
             model: this.model,
             messages: [{ role: "user", content: prompt }],
-            temperature: this.temperature,
-            max_tokens: this.maxTokens
+            max_completion_tokens: this.maxTokens
         });
 
         return response.choices?.[0]?.message?.content?.trim();
