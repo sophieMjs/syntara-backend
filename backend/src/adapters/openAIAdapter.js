@@ -38,6 +38,7 @@ class OpenAIAdapter {
         }
 
         console.log("✅ [OpenAIAdapter] 5.2. Respuesta de IA recibida. Parseando...");
+        console.log("✅ [OpenAIAdapter] RESPUESTA ORIGINAL DE OPEN AI: ",rawResponse);
 
         // 5. Mover la lógica de parseo y conversión aquí
         try {
