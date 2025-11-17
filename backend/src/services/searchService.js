@@ -60,6 +60,7 @@ class SearchService {
         console.log("✅ [SearchService] 7. Logs de búsqueda guardados. Retornando...");
 
 
+
         return {
             searchId: searchLog._id,
             product,
