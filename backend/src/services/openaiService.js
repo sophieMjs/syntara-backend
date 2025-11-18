@@ -20,7 +20,6 @@ class OpenAIService {
 
         this.model = process.env.OPENAI_MODEL || "gpt-5.1";
         this.temperature = 0.0;
-        this.maxTokens = 2500;
         this.maxRetries = 3;
         this.retryDelay = 1200; // ms
     }

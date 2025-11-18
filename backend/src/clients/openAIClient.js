@@ -19,64 +19,57 @@ class OpenAIClient {
         const configuredLimit = this._sanitizeTokenLimit(
             process.env.OPENAI_MAX_COMPLETION_TOKENS ?? process.env.OPENAI_MAX_TOKENS
         );
-        this.maxTokens = configuredLimit ?? 2000;
+        this.maxTokens = configuredLimit;
 
         OpenAIClient.instance = this;
     }
 
-    async sendPrompt(prompt) {
-            const baseRequest = {
-                model: this.model,
-                messages: [{ role: "user", content: prompt }],
+// backend/src/clients/openAIClient.js
 
-        response_format: { type: "json_object" }
-    };
+// ... (El constructor se mantiene igual)
+
+    async sendPrompt(prompt) {
+        const payload = {
+            model: this.model,
+            messages: [{ role: "user", content: prompt }],
+            response_format: { type: "json_object" }
+        };
 
         const tokenLimit = this._sanitizeTokenLimit(this.maxTokens);
-        const attempts = this._buildTokenParamAttempts(tokenLimit);
-        let lastUnsupportedError = null;
 
-        for (const param of attempts) {
-            const payload = { ...baseRequest };
+        // --- CORRECCIÓN CRÍTICA: Usar el parámetro correcto para el modelo ---
+        if (tokenLimit) {
+            payload.max_completion_tokens = tokenLimit; // ¡Cambiado de 'max_tokens' a 'max_completion_tokens'!
+        }
+        // ----------------------------------------------------------------------
 
-            if (param && tokenLimit) {
-                payload[param] = tokenLimit;
+        try {
+            const response = await this.client.chat.completions.create(payload);
+
+            const choice = response?.choices?.[0];
+            const message = choice?.message;
+
+            if (!message) {
+                const finishReason = choice?.finish_reason || 'unknown';
+                console.error(`❌ [OpenAIClient] Respuesta incompleta o filtrada. Razón: ${finishReason}`);
+                throw new Error(`OpenAI no devolvió un mensaje válido. Razón de finalización: ${finishReason}.`);
             }
 
-            try {
-                const response = await this.client.chat.completions.create(payload);
-
-                const choice = response?.choices?.[0];
-                const message = choice?.message;
-
-                if (!message) {
-                    throw new Error("OpenAI no devolvió un mensaje en la respuesta");
-                }
-
-                const rawContent = this._extractContent(choice);
-                if (rawContent) {
-                    return rawContent;
-                }
-
-                throw new Error("OpenAI no devolvió contenido interpretable en la respuesta");
-            } catch (error) {
-                if (param && this._isUnsupportedParamError(error, param)) {
-                    console.warn(
-                        `⚠ [OpenAIClient] '${param}' no es compatible con el modelo ${this.model}. Reintentando con otro parámetro.`);
-                    lastUnsupportedError = error;
-                    continue;
-                }
-
-                throw error;
+            const rawContent = this._extractContent(choice);
+            if (rawContent) {
+                return rawContent;
             }
-        }
 
-        if (lastUnsupportedError) {
-            throw lastUnsupportedError;
-        }
+            console.error("❌ [OpenAIClient] Contenido extraíble nulo/vacío. Mensaje crudo:", JSON.stringify(message).substring(0, 500) + '...');
+            throw new Error("OpenAI no devolvió contenido interpretable en la respuesta (Contenido vacío o inesperado).");
 
-        throw new Error("OpenAI no devolvió contenido interpretable en la respuesta");
+        } catch (error) {
+            console.error(`🔥 [OpenAIClient] Error de la API o red: ${error.message}`);
+            throw error;
+        }
     }
+
+// ... (El resto de métodos, incluyendo _sanitizeTokenLimit y _extractContent)
 
     _extractContent(choice) {
         const message = choice?.message;
@@ -115,25 +108,6 @@ class OpenAIClient {
         }
 
         return null;
-    }
-
-    _buildTokenParamAttempts(tokenLimit) {
-        if (!tokenLimit) {
-            return [null];
-        }
-
-        return ["max_completion_tokens", "max_tokens", null];
-    }
-
-    _isUnsupportedParamError(error, param) {
-        if (!error) return false;
-
-        const message = error?.message || error?.error?.message;
-        if (typeof message !== "string") {
-            return false;
-        }
-
-        return message.includes("Unsupported parameter") && message.includes('${param}');
     }
 
     _sanitizeTokenLimit(value) {
