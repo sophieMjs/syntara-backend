@@ -1,5 +1,6 @@
 const OpenAI = require("openai");
 require("dotenv").config();
+const SearchPromptBuilder = require("../services/propmtBuilders/searchPromptBuilder");
 
 class OpenAIClient {
     constructor() {
@@ -21,27 +22,65 @@ class OpenAIClient {
         OpenAIClient.instance = this;
     }
 
-    async sendPrompt(prompt, tools = []) {
+    async sendPrompt({ product, quantity, unit, city = "Bogotá" }) {
+        // Instanciar el prompt builder
+        const promptBuilder = new SearchPromptBuilder();
+        const prompt = promptBuilder.buildPrompt({ product, quantity, unit, city });
+
+        // El arreglo de páginas permitidas para la búsqueda web
+        const allowedDomains = [
+            "exito.com", "carulla.com", "mercadolibre.com.co", "rappi.com.co",
+            "colombia.oxxodomicilios.com", "d1.com.co", "aratiendas.com", "olimpica.com",
+            "jumbocolombia.com", "tiendasmetro.co", "tienda.makro.com.co", "alkosto.com",
+            "alkomprar.com", "ktronix.com", "tienda.claro.com.co", "tienda.movistar.com.co",
+            "wom.co/equiposcategory8", "virginmobile.co/marketplace", "panamericana.com.co",
+            "falabella.com.co", "pepeganga.com", "locatelcolombia.com", "bellapiel.com.co",
+            "farmatodo.com.co", "cruzverde.com.co", "larebajavirtual.com", "drogueriasalemana.com",
+            "drogueriasdeldrsimi.co", "tiendasisimo.com", "drogueriascolsubsidio.com",
+            "homecenter.com.co", "easy.com.co", "ikea.com/co/es", "homesentry.co",
+            "decathlon.com.co", "dafiti.com.co", "cromantic.com"
+        ];
+
+        // Define la herramienta de búsqueda web como 'function' y pasa el arreglo de dominios
         const payload = {
             model: this.model,
             messages: [{role: "user", content: prompt}],
             response_format: {type: "json_object"},
-            tools: tools.length > 0 ? tools : [{
-                type: "web_search", filters: {
-                    allowed_domains: ["exito.com", "carulla.com", "mercadolibre.com.co", "rappi.com.co", "colombia.oxxodomicilios.com", "d1.com.co", "aratiendas.com", "olimpica.com", "jumbocolombia.com", "tiendasmetro.co", "tienda.makro.com.co", "alkosto.com", "alkomprar.com", "ktronix.com", "tienda.claro.com.co", "tienda.movistar.com.co", "wom.co/equiposcategory8", "virginmobile.co/marketplace", "panamericana.com.co", "falabella.com.co", "pepeganga.com", "locatelcolombia.com", "bellapiel.com.co", "farmatodo.com.co", "cruzverde.com.co", "larebajavirtual.com", "drogueriasalemana.com", "drogueriasdeldrsimi.co", "tiendasisimo.com", "drogueriascolsubsidio.com", "homecenter.com.co", "easy.com.co", "ikea.com/co/es", "homesentry.co", "decathlon.com.co", "dafiti.com.co", "cromantic.com"]
+            tools: [
+                {
+                    type: "function",  // Definimos que la herramienta es de tipo 'function'
+                    function: {
+                        name: "web_search",  // Nombre de la función personalizada
+                        description: "Realiza una búsqueda web en sitios de comercio electrónico colombianos",  // Descripción
+                        parameters: {
+                            type: "object",
+                            properties: {
+                                query: {
+                                    type: "string",
+                                    description: "Término de búsqueda para el producto"
+                                },
+                                allowed_domains: {
+                                    type: "array",
+                                    items: { type: "string" },
+                                    description: "Lista de dominios permitidos para realizar la búsqueda"
+                                }
+                            },
+                            required: ["query"]  // 'query' es obligatorio para la búsqueda
+                        }
+                    }
                 }
-            }] // Activa la herramienta de web search si no se pasa otra herramienta
+            ],
+            input: "",  // Se deja vacío para activar la herramienta de búsqueda web si no hay otra función especificada
         };
 
         const tokenLimit = this._sanitizeTokenLimit(this.maxTokens);
 
-        // --- CORRECCIÓN CRÍTICA: Usar el parámetro correcto para el modelo ---
         if (tokenLimit) {
-            payload.max_completion_tokens = tokenLimit; // ¡Cambiado de 'max_tokens' a 'max_completion_tokens'!
+            payload.max_completion_tokens = tokenLimit;  // ¡Cambiado de 'max_tokens' a 'max_completion_tokens'!
         }
-        // ----------------------------------------------------------------------
 
         try {
+            // Ejecutar la solicitud a la API de OpenAI
             const response = await this.client.chat.completions.create(payload);
 
             const choice = response?.choices?.[0];
@@ -71,13 +110,11 @@ class OpenAIClient {
         const message = choice?.message;
         if (!message) return null;
 
-        // Algunos modelos pueden retornar el contenido como string plano
         if (typeof message.content === "string") {
             const text = message.content.trim();
             if (text) return text;
         }
 
-        // Otros modelos retornan el contenido como un arreglo de partes
         if (Array.isArray(message.content)) {
             const text = message.content
                 .map(part => {
@@ -92,13 +129,11 @@ class OpenAIClient {
             if (text) return text;
         }
 
-        // También puede venir como argumentos de una llamada a herramienta
         const toolArgs = message?.tool_calls?.[0]?.function?.arguments;
         if (typeof toolArgs === "string" && toolArgs.trim()) {
             return toolArgs.trim();
         }
 
-        // En casos raros, el modelo puede retornar texto en choice.text
         if (typeof choice?.text === "string" && choice.text.trim()) {
             return choice.text.trim();
         }
