@@ -59,7 +59,8 @@ class SearchService {
                 quantity,
                 unit
             },              // <--- AÑADIR ESTO
-            results: savedRecords.map(r => r._id)
+            results: savedRecords.map(r => r._id),
+            timestamp: dateToSave
         });
 
         console.log("✅ [SearchService] 7. Logs de búsqueda guardados. Retornando...");
