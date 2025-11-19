@@ -22,82 +22,107 @@ class OpenAIClient {
         OpenAIClient.instance = this;
     }
 
-    async sendPrompt({ product, quantity, unit, city = "Bogotá" }) {
-        // Instanciar el prompt builder
-        const promptBuilder = new SearchPromptBuilder();
-        const prompt = promptBuilder.buildPrompt({ product, quantity, unit, city });
+        async sendPrompt(promptInput) {
+            // Construir el prompt solo si recibimos los datos sin procesar.
+            // Si ya es un string, lo usamos directamente.
+            let prompt;
+            if (typeof promptInput === "string") {
+                prompt = promptInput;
+            } else {
+                const { product, quantity, unit, city = "Bogotá" } = promptInput || {};
+                const promptBuilder = new SearchPromptBuilder();
+                prompt = promptBuilder.buildPrompt({ product, quantity, unit, city });
+            }
 
-        // El arreglo de páginas permitidas para la búsqueda web
-        const allowedDomains = [
-            "exito.com", "carulla.com", "mercadolibre.com.co", "rappi.com.co",
-            "colombia.oxxodomicilios.com", "d1.com.co", "aratiendas.com", "olimpica.com",
-            "jumbocolombia.com", "tiendasmetro.co", "tienda.makro.com.co", "alkosto.com",
-            "alkomprar.com", "ktronix.com", "tienda.claro.com.co", "tienda.movistar.com.co",
-            "wom.co/equiposcategory8", "virginmobile.co/marketplace", "panamericana.com.co",
-            "falabella.com.co", "pepeganga.com", "locatelcolombia.com", "bellapiel.com.co",
-            "farmatodo.com.co", "cruzverde.com.co", "larebajavirtual.com", "drogueriasalemana.com",
-            "drogueriasdeldrsimi.co", "tiendasisimo.com", "drogueriascolsubsidio.com",
-            "homecenter.com.co", "easy.com.co", "ikea.com/co/es", "homesentry.co",
-            "decathlon.com.co", "dafiti.com.co", "cromantic.com"
-        ];
+            // El arreglo de páginas permitidas para la búsqueda web
+            const allowedDomains = [
+                "exito.com", "carulla.com", "mercadolibre.com.co", "rappi.com.co",
+                "colombia.oxxodomicilios.com", "d1.com.co", "aratiendas.com", "olimpica.com",
+                "jumbocolombia.com", "tiendasmetro.co", "tienda.makro.com.co", "alkosto.com",
+                "alkomprar.com", "ktronix.com", "tienda.claro.com.co", "tienda.movistar.com.co",
+                "wom.co/equiposcategory8", "virginmobile.co/marketplace", "panamericana.com.co",
+                "falabella.com.co", "pepeganga.com", "locatelcolombia.com", "bellapiel.com.co",
+                "farmatodo.com.co", "cruzverde.com.co", "larebajavirtual.com", "drogueriasalemana.com",
+                "drogueriasdeldrsimi.co", "tiendasisimo.com", "drogueriascolsubsidio.com",
+                "homecenter.com.co", "easy.com.co", "ikea.com/co/es", "homesentry.co",
+                "decathlon.com.co", "dafiti.com.co", "cromantic.com"
+            ];
 
-        // Define la herramienta de búsqueda web como 'function' y pasa el arreglo de dominios
-        const payload = {
-            model: this.model,
-            messages: [{role: "user", content: prompt}],
-            response_format: {type: "json_object"},
-            tools: [{
-                type: "function",
-                function: {
-                    name: "web_search",
-                    description: "Busca en la web para obtener información actualizada sobre precios de productos en tiendas online.",
-                    parameters: {
-                        type: "object",
-                        properties: {
-                            query: {
-                                type: "string",
-                                description: "La consulta de búsqueda optimizada para encontrar productos y precios."
-                            }
-                        },
-                        required: ["query"]
+            const systemInstruction = `Debes usar la herramienta web_search siempre que necesites buscar precios en línea.
+Incluye siempre el parámetro allowed_domains con este listado restringido: ${allowedDomains.join(", ")}.`;
+
+            // Define la herramienta de búsqueda web como 'function' y pasa el arreglo de dominios
+            const payload = {
+                model: this.model,
+                messages: [
+                    { role: "system", content: systemInstruction },
+                    { role: "user", content: prompt }
+                ],
+                response_format: {type: "json_object"},
+                tools: [
+                    {
+                        type: "function",  // Definimos que la herramienta es de tipo 'function'
+                        function: {
+                            name: "web_search",  // Nombre de la función personalizada
+                            description: "Realiza una búsqueda web en sitios de comercio electrónico colombianos",  // Descripción
+            parameters: {
+                type: "object",
+                    properties: {
+                    query: {
+                        type: "string",
+                            description: "Término de búsqueda para el producto"
+                    },
+                    allowed_domains: {
+                        type: "array",
+                            items: { type: "string" },
+                        description: "Lista de dominios permitidos para realizar la búsqueda",
+                    default: allowedDomains
                     }
-                }
-            }],
-            // Indicamos al modelo que puede elegir usar la herramienta o responder directamente (para el JSON final).
-            tool_choice: "auto"
-        };
-        const tokenLimit = this._sanitizeTokenLimit(this.maxTokens);
-
-        if (tokenLimit) {
-            payload.max_completion_tokens = tokenLimit;  // ¡Cambiado de 'max_tokens' a 'max_completion_tokens'!
-        }
-
-        try {
-            // Ejecutar la solicitud a la API de OpenAI
-            const response = await this.client.chat.completions.create(payload);
-
-            const choice = response?.choices?.[0];
-            const message = choice?.message;
-
-            if (!message) {
-                const finishReason = choice?.finish_reason || 'unknown';
-                console.error(`❌ [OpenAIClient] Respuesta incompleta o filtrada. Razón: ${finishReason}`);
-                throw new Error("OpenAI no devolvió un mensaje válido. Razón de finalización: " + finishReason);
+                },
+                required: ["query", "allowed_domains"]  // 'query' es obligatorio para la búsqueda
             }
-
-            const rawContent = this._extractContent(choice);
-            if (rawContent) {
-                return rawContent;
-            }
-
-            console.error("❌ [OpenAIClient] Contenido extraíble nulo/vacío. Mensaje crudo:", JSON.stringify(message).substring(0, 500) + '...');
-            throw new Error("OpenAI no devolvió contenido interpretable en la respuesta (Contenido vacío o inesperado).");
-
-        } catch (error) {
-            console.error(`🔥 [OpenAIClient] Error de la API o red: ${error.message}`);
-            throw error;
         }
     }
+],
+    tool_choice: "auto",
+    parallel_tool_calls: "false"
+};
+
+const tokenLimit = this._sanitizeTokenLimit(this.maxTokens);
+
+if (tokenLimit) {
+    payload.max_completion_tokens = tokenLimit;  // ¡Cambiado de 'max_tokens' a 'max_completion_tokens'!
+}
+
+try {
+    // Ejecutar la solicitud a la API de OpenAI
+    const response = await this.client.chat.completions.create(payload);
+
+    const choice = response?.choices?.[0];
+    const message = choice?.message;
+
+    if (!message) {
+        const finishReason = choice?.finish_reason || 'unknown';
+        console.error(`❌ [OpenAIClient]Respuesta incompleta o filtrada.Razón:${finishReason}`);
+        throw new Error("OpenAI no devolvió un mensaje válido. Razón de finalización: " + finishReason);
+    }
+
+    const rawContent = this._extractContent(choice);
+    if (rawContent) {
+        return rawContent;
+    }
+    if (rawContent) {
+        return rawContent;
+    }
+
+    console.error("❌ [OpenAIClient] Contenido extraíble nulo/vacío. Mensaje crudo:", JSON.stringify(message).substring(0, 500) + '...');
+    throw new Error("OpenAI no devolvió contenido interpretable en la respuesta (Contenido vacío o inesperado).");
+
+} catch (error) {
+    console.error(`🔥 [OpenAIClient] Error de la API o red: ${error.message}`);
+    throw error;
+}
+        }
 
     _extractContent(choice) {
         const message = choice?.message;
