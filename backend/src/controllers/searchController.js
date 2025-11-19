@@ -4,15 +4,17 @@ const searchService = new SearchService();
 
 exports.search = async (req, res) => {
     try {
-        // Leemos de req.query (parámetros de URL)
-        const { product, quantity, unit } = req.query;
+        // Leemos de req.query (parámetros de URL).
+        // 💡 clientDate se lee aquí
+        const { product, quantity, unit, clientDate } = req.query;
         const userId = req.user?.id || null;
 
         // Convertimos quantity a número, ya que req.query son strings
         const numericQuantity = quantity ? parseInt(quantity, 10) : undefined;
 
         // --- LOG DE DIAGNÓSTICO 1 ---
-        console.log("➡️ [SearchController] 1. Parámetros recibidos y validados:", { product, quantity: numericQuantity, unit, userId });
+        // 💡 Añadimos clientDate al log para confirmar recepción
+        console.log("➡️ [SearchController] 1. Parámetros recibidos y validados:", { product, quantity: numericQuantity, unit, userId, clientDate });
 
         console.log("⏳ [SearchController] 2. Llamando a searchService.search... (Esperando AWAIT)");
 
@@ -21,7 +23,8 @@ exports.search = async (req, res) => {
             userId,
             product,
             quantity: numericQuantity,
-            unit
+            unit,
+            clientDate // 💡 CORRECCIÓN: Pasar clientDate al servicio
         });
 
         // --- LOG DE DIAGNÓSTICO 2 (Si este log aparece, el servicio resolvió exitosamente) ---

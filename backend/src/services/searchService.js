@@ -16,8 +16,8 @@ class SearchService {
         console.log("🛠️ [SearchService] OpenAIAdapter inicializado."); // LOG ADAPTER INIT
     }
 
-    // 🛑 Limpiamos la firma para recibir solo los 4 parámetros esperados
-    async search({ userId, product, quantity = 1, unit = null }) {
+    // 💡 CORRECCIÓN: Añadir clientDate a la firma para recibir la hora del PC
+    async search({ userId, product, quantity = 1, unit = null, clientDate = null }) {
 
         console.log("➡️ [SearchService] 4. Ejecución del método search iniciada."); // LOG METHOD START
 
@@ -34,6 +34,10 @@ class SearchService {
 
         console.log("✅ [SearchService] 6. Respuesta de IA recibida y parseada."); // LOG DESPUÉS DE LA LLAMADA EXTERNA
 
+        // 💡 PASO CLAVE: Determinar la fecha a guardar. Si clientDate existe, úsalo. Si no, usa la fecha del servidor.
+        // new Date() interpretará el string ISO que viene del front correctamente.
+        const dateToSave = clientDate ? new Date(clientDate) : new Date();
+
         // 3️⃣ Guardar registros en BD
         const savedRecords = [];
         for (const entity of priceRecords) {
@@ -41,7 +45,8 @@ class SearchService {
             const record = await this.priceRepo.create({
                 ...entity, // Usamos la entidad que ya creó el Adapter
                 normalizedProduct: entity.normalizedProduct || entity.product.toLowerCase(),
-                date: entity.date || new Date(),
+                // 💡 CORRECCIÓN: Usar la fecha del cliente/servidor definida arriba
+                date: dateToSave,
             });
             savedRecords.push(record);
         }
@@ -58,7 +63,6 @@ class SearchService {
         });
 
         console.log("✅ [SearchService] 7. Logs de búsqueda guardados. Retornando...");
-
 
 
         return {
