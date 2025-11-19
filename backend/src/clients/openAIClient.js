@@ -46,33 +46,26 @@ class OpenAIClient {
             model: this.model,
             messages: [{role: "user", content: prompt}],
             response_format: {type: "json_object"},
-            tools: [
-                {
-                    type: "function",  // Definimos que la herramienta es de tipo 'function'
-                    function: {
-                        name: "web_search",  // Nombre de la función personalizada
-                        description: "Realiza una búsqueda web en sitios de comercio electrónico colombianos",  // Descripción
-                        parameters: {
-                            type: "object",
-                            properties: {
-                                query: {
-                                    type: "string",
-                                    description: "Término de búsqueda para el producto"
-                                },
-                                allowed_domains: {
-                                    type: "array",
-                                    items: { type: "string" },
-                                    description: "Lista de dominios permitidos para realizar la búsqueda"
-                                }
-                            },
-                            required: ["query"]  // 'query' es obligatorio para la búsqueda
-                        }
+            tools: [{
+                type: "function",
+                function: {
+                    name: "web_search",
+                    description: "Busca en la web para obtener información actualizada sobre precios de productos en tiendas online.",
+                    parameters: {
+                        type: "object",
+                        properties: {
+                            query: {
+                                type: "string",
+                                description: "La consulta de búsqueda optimizada para encontrar productos y precios."
+                            }
+                        },
+                        required: ["query"]
                     }
                 }
-            ],
-            input: "",  // Se deja vacío para activar la herramienta de búsqueda web si no hay otra función especificada
+            }],
+            // Indicamos al modelo que puede elegir usar la herramienta o responder directamente (para el JSON final).
+            tool_choice: "auto"
         };
-
         const tokenLimit = this._sanitizeTokenLimit(this.maxTokens);
 
         if (tokenLimit) {
