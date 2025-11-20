@@ -36,7 +36,18 @@ class OpenAIAdapter {
         // --- PARSEO ---
         try {
             const parser = this.parserFactory.getParser("json");
-            const parsed = parser.parse(finalResponse);
+
+            const content = finalResponse?.raw?.output_text || finalResponse?.text;
+
+            if (!content || content.trim() === "") {
+                console.error("❌ [OpenAIAdapter] El texto de respuesta está vacío.");
+                console.log("Raw Response:", finalResponse);
+                throw new Error("OpenAI devolvió una respuesta vacía.");
+            }
+
+            const parsed = parser.parse(content);
+
+            //const parsed = parser.parse(finalResponse);
 
             return (parsed.results || []).map(r => new PriceRecordEntity(r));
 
