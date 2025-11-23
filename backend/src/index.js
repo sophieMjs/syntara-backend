@@ -10,33 +10,34 @@ const { join } = require('path');
 
 // --- IMPORTACIONES DEL SERVIDOR (con require) ---
 const express = require('express');
-
-// --- CORRECCIÓN: La ruta correcta es './models/User' ---
-const User = require('./models/User'); //
-
 const cors = require('cors');
+
+// --- MODELOS ---
+const User = require('./models/User');
+// Importamos el modelo del Carrito
+const { CartEntity, CartModel } = require('./models/Cart.js');
+
+// --- RUTAS ---
 const authRoutes = require('./routes/authRoutes.js');
 const reportRoutes = require('./routes/reportRoutes.js');
 const searchRoutes = require('./routes/searchRoutes.js');
 const subscriptionRoutes = require('./routes/subscriptionRoutes.js');
 const userRoutes = require('./routes/userRoutes.js');
+// Importamos la ruta del Carrito
+const cartRoutes = require('./routes/cartRoutes.js');
 // -----------------------------------------
-
-// --- Lógica de Rutas (Spawn) ---
-// Verifica que esta ruta sea correcta según tu estructura de carpetas
 
 // 'port' ahora leerá correctamente el .env
 const port = process.env.PORT || 3000;
 
-// --- Lógica de Base de Datos (Corregida) ---
+// --- Lógica de Base de Datos ---
 async function connectDB() {
     try {
-        // 2. Usamos las variables del .env (MONGODB_HOST, MONGODB_PORT, etc.)
+        // 2. Usamos las variables del .env
         const uri = `mongodb://${process.env.MONGODB_HOST}:${process.env.MONGODB_PORT}/${process.env.MONGODB_DB_NAME}`;
 
         console.log("🌐 Conectando a:", uri);
 
-        // Opciones recomendadas para Mongoose
         const options = {
             useNewUrlParser: true,
             useUnifiedTopology: true,
@@ -55,36 +56,36 @@ async function connectDB() {
 connectDB();
 
 // --- SERVIDOR EXPRESS ---
-// 6. ¡INICIALIZAR APP AQUÍ!
 const app = express();
 
 // Middlewares
 app.use(cors());
 app.use(express.json());
 
-
 app.use((req, res, next) => {
     console.log(`[CONEXIÓN FRONTEND] ${req.method} ${req.originalUrl}`);
-
-    console.log('[REQ.BODY]:', req.body);
-
+    // console.log('[REQ.BODY]:', req.body); // Descomentar si necesitas depurar body
     next();
 });
-// ----------------------------------------------------
 
+// ----------------------------------------------------
 // Rutas de la API
+// ----------------------------------------------------
 app.use('/api/auth', authRoutes);
 app.use('/api/reports', reportRoutes);
 app.use('/api/search', searchRoutes);
 app.use('/api/subscriptions', subscriptionRoutes);
 app.use('/api/users', userRoutes);
+// Registramos la ruta del carrito
+app.use('/api/cart', cartRoutes);
+// ----------------------------------------------------
 
 // Ruta de prueba
 app.get('/api', (req, res) => {
     res.send('¡El servidor API de Syntara está funcionando!');
 });
 
-// Ruta de Ping para el frontend (Solución 2)
+// Ruta de Ping para el frontend
 app.get('/api/ping', (req, res) => {
     console.log('✅ ¡El frontend ha hecho PING!');
     res.status(200).send('pong');
@@ -97,27 +98,18 @@ app.get('/api/db-status', (req, res) => {
 
     // Estados de Mongoose: 0 = disconnected, 1 = connected, 2 = connecting, 3 = disconnecting
     switch (state) {
-        case 0:
-            statusMessage = 'Desconectado';
-            break;
-        case 1:
-            statusMessage = '¡Conectado exitosamente!';
-            break;
-        case 2:
-            statusMessage = 'Conectando...';
-            break;
-        case 3:
-            statusMessage = 'Desconectando...';
-            break;
+        case 0: statusMessage = 'Desconectado'; break;
+        case 1: statusMessage = '¡Conectado exitosamente!'; break;
+        case 2: statusMessage = 'Conectando...'; break;
+        case 3: statusMessage = 'Desconectando...'; break;
     }
-    res.json({
-        connectionState: state,
-        statusMessage: statusMessage
-    });
+    res.json({ connectionState: state, statusMessage: statusMessage });
 });
 
 module.exports = {
     User,
+    CartEntity,
+    CartModel,
     // Subscription,
     // PriceRecord,
     // Search,
