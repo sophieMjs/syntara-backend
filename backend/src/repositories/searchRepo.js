@@ -82,6 +82,27 @@ class SearchRepository {
             { $limit: limit }
         ]);
     }
+
+
+    async countSearchesToday(userId) {
+        const now = new Date();
+        // Inicio del día (00:00:00)
+        const start = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+        // Inicio del día siguiente (00:00:00 del mañana)
+        const end = new Date(now.getFullYear(), now.getMonth(), now.getDate() + 1);
+
+        const filter = {
+            timestamp: { $gte: start, $lt: end }
+        };
+
+        if (userId) {
+            filter.userId = new mongoose.Types.ObjectId(userId);
+        } else {
+            filter.userId = null;
+        }
+
+        return SearchModel.countDocuments(filter).exec();
+    }
 }
 
 module.exports = new SearchRepository();

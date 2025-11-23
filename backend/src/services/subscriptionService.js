@@ -90,13 +90,15 @@ class SubscriptionService {
     async checkMonthlyLimit(userId) {
         const subscription = await this.getUserSubscription(userId);
 
-        // Si no tiene plan → modo FREE (5 búsquedas)
+        // Si no tiene plan → modo FREE (ahora 3 búsquedas)
         if (!subscription) {
-            const searches = await this.searchRepo.countSearchesThisMonth(userId);
+            const searches = await this.searchRepo.countSearchesToday(userId);
+            const FREE_LIMIT = 3;
+
             return {
                 plan: "FREE",
-                remaining: Math.max(0, 5 - searches),
-                allowed: searches < 5
+                remaining: Math.max(0, FREE_LIMIT - searches),
+                allowed: searches < FREE_LIMIT
             };
         }
 
