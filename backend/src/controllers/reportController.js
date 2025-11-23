@@ -1,5 +1,3 @@
-// backend/src/controllers/reportController.js
-
 const ReportService = require("../services/reportService");
 const SubscriptionService = require("../services/subscriptionService");
 

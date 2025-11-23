@@ -1,11 +1,11 @@
-// backend/src/services/propmtBuilders/wholesalePromptBuilder.js
+
 
 const IPromptBuilder = require("./IPromptBuilder");
 
 class WholesalePromptBuilder extends IPromptBuilder {
     buildPrompt({ product, quantity, unit }) {
 
-        // Ampliamos un poco la lista y quitamos restricciones duras
+
         const targetDomains = [
             "makro.com.co",
             "surtimayorista.com",
@@ -20,7 +20,7 @@ class WholesalePromptBuilder extends IPromptBuilder {
             "tecnologiamayorista.com",
             "distribuidoraelfaro.com",
             "mercadolibre.com.co",
-            "exito.com", // Agregamos éxitos y jumbos porque a veces venden pacas
+            "exito.com",
             "jumbo.com.co",
             "eurosupermercados.com"
         ];

@@ -1,4 +1,3 @@
-// factories/parserFactory.js
 const JSONParser = require("../parsers/jsonParser");
 
 class ParserFactory {

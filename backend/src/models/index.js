@@ -1,4 +1,3 @@
-// index.js - reexportar modelos para import más limpio
 const { UserEntity, UserModel } = require('./User');
 const { SubscriptionEntity, SubscriptionModel } = require('./Subscription');
 const { PriceRecordEntity, PriceRecordModel } = require('./PriceRecord');

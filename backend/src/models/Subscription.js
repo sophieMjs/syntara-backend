@@ -1,6 +1,3 @@
-// Subscription.js
-// Clase de dominio + esquema / modelo Mongoose para suscripciones
-
 const mongoose = require('mongoose');
 
 class SubscriptionEntity {
@@ -15,12 +12,6 @@ class SubscriptionEntity {
         this.endDate = endDate;
     }
 
-    // Ejemplo de helper: comprobar si está activa
-    isActive() {
-        if (!this.active) return false;
-        if (this.endDate && new Date() > new Date(this.endDate)) return false;
-        return true;
-    }
 }
 
 const subscriptionSchema = new mongoose.Schema({

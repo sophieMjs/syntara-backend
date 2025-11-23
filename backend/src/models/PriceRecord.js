@@ -56,7 +56,6 @@ const priceRecordSchema = new mongoose.Schema({
     productDetails: {type: String, default: null}
 });
 
-// Index para consultas por producto + tienda + fecha (útil en búsquedas)
 priceRecordSchema.index({ normalizedProduct: 1, store: 1, date: -1 });
 
 const PriceRecordModel = mongoose.model('PriceRecord', priceRecordSchema);

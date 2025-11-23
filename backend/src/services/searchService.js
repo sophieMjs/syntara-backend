@@ -17,19 +17,16 @@ class SearchService {
     async search({ userId, product, quantity = 1, unit = null, clientDate = null, searchType = "search" }) {
         console.log(`➡️ [SearchService] Búsqueda iniciada. Tipo: ${searchType}`);
 
-        // 1. Construir prompt usando el tipo (search o wholesale)
         const builder = this.promptFactory.getPromptBuilder(searchType);
         const prompt = builder.buildPrompt({ product, quantity, unit });
         console.log("➡️ [SearchService] Prompt construido. Llamando a la IA...");
 
-        // 2. Llamar IA
         const priceRecords = await this.ai.toPriceRecords(prompt);
 
         console.log("✅ [SearchService] Respuesta de IA recibida y parseada.");
 
         const dateToSave = clientDate ? new Date(clientDate) : new Date();
 
-        // 3. Guardar PriceRecords
         const savedRecords = [];
         for (const entity of priceRecords) {
             const record = await this.priceRepo.create({
@@ -40,7 +37,6 @@ class SearchService {
             savedRecords.push(record);
         }
 
-        // 4. Registrar búsqueda
         const searchLog = await this.searchRepo.create({
             userId,
             query: {
@@ -61,31 +57,26 @@ class SearchService {
         };
     }
 
-    // [MODIFICADO] Obtener historial "expandido" con los objetos devueltos
-// [CORREGIDO] Obtener historial "expandido" con los objetos devueltos
+
     async getUserHistory(userId) {
         const historyDocs = await this.searchRepo.findUserHistory(userId);
         const flattenedHistory = [];
 
-        // Recorremos cada búsqueda guardada
         historyDocs.forEach(doc => {
-            // Si la búsqueda tuvo resultados (objetos encontrados)
             if (doc.results && doc.results.length > 0) {
-                // Creamos una entrada en el historial por CADA producto encontrado
                 doc.results.forEach(record => {
                     flattenedHistory.push({
                         id: doc._id,
-                        product: record.product, // Nombre real del producto encontrado
-                        store: record.store,     // <--- AGREGADO: Tienda (ej: Exito)
-                        price: record.price,     // <--- AGREGADO: Precio
-                        url: record.url,         // <--- AGREGADO: URL del producto
+                        product: record.product,
+                        store: record.store,
+                        price: record.price,
+                        url: record.url,
                         quantity: doc.query.quantity,
                         unit: doc.query.unit,
                         date: doc.timestamp
                     });
                 });
             } else {
-                // Caso fallback: búsqueda sin resultados
                 flattenedHistory.push({
                     id: doc._id,
                     product: doc.query.product,

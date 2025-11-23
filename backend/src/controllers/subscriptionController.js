@@ -1,5 +1,3 @@
-// controllers/subscriptionController.js
-
 const SubscriptionService = require("../services/subscriptionService");
 const subscriptionService = new SubscriptionService();
 

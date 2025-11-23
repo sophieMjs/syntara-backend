@@ -1,4 +1,3 @@
-// repositories/searchRepo.js
 const { SearchModel } = require("../models/Search");
 const mongoose = require("mongoose");
 
@@ -9,11 +8,6 @@ class SearchRepository {
         return await search.save();
     }
 
-    async findById(id) {
-        return SearchModel.findById(id)
-            .populate("results")
-            .exec();
-    }
 
     async findUserHistory(userId, limit = 20) {
         return SearchModel.find({ userId })
@@ -23,13 +17,6 @@ class SearchRepository {
             .exec();
     }
 
-    async addPriceRecord(searchId, recordId) {
-        return SearchModel.findByIdAndUpdate(
-            searchId,
-            { $push: { results: recordId } },
-            { new: true }
-        ).exec();
-    }
 
     async countSearchesThisMonth(userId) {
         const now = new Date();
@@ -53,13 +40,11 @@ class SearchRepository {
         return SearchModel.deleteMany({ userId: userId }).exec();
     }
 
-    // [NUEVO] Obtener productos más buscados (Demanda) donde aparece mi tienda
-    // Cruza las búsquedas con los registros de precios para filtrar por tienda
     async findTopSearchedProductsByStore(storeName, limit = 10) {
         return await SearchModel.aggregate([
             {
                 $lookup: {
-                    from: "pricerecords", // Colección de PriceRecords en Mongo
+                    from: "pricerecords",
                     localField: "results",
                     foreignField: "_id",
                     as: "resultDetails"
@@ -67,18 +52,17 @@ class SearchRepository {
             },
             {
                 $match: {
-                    // Filtramos búsquedas que arrojaron al menos un resultado de "mi tienda"
                     "resultDetails.store": new RegExp(storeName, "i")
                 }
             },
             {
                 $group: {
-                    _id: "$query.product", // Agrupamos por el término buscado (Producto/Categoría)
-                    searchCount: { $sum: 1 }, // Frecuencia de búsqueda (Demanda)
+                    _id: "$query.product",
+                    searchCount: { $sum: 1 },
                     lastSearchDate: { $max: "$timestamp" }
                 }
             },
-            { $sort: { searchCount: -1 } }, // Los más buscados primero
+            { $sort: { searchCount: -1 } },
             { $limit: limit }
         ]);
     }
@@ -86,9 +70,7 @@ class SearchRepository {
 
     async countSearchesToday(userId) {
         const now = new Date();
-        // Inicio del día (00:00:00)
         const start = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-        // Inicio del día siguiente (00:00:00 del mañana)
         const end = new Date(now.getFullYear(), now.getMonth(), now.getDate() + 1);
 
         const filter = {

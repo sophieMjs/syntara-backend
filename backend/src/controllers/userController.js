@@ -1,5 +1,3 @@
-// controllers/userController.js
-
 const UserRepository = require("../repositories/userRepo");
 
 const userRepository = new UserRepository();

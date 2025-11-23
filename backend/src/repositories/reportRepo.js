@@ -1,4 +1,3 @@
-// repositories/reportRepository.js
 const { ReportModel } = require("../models/Report");
 
 class ReportRepository {

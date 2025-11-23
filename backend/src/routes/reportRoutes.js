@@ -1,5 +1,3 @@
-// backend/src/routes/reportRoutes.js
-
 const express = require("express");
 const router = express.Router();
 
@@ -11,7 +9,6 @@ router.post("/generate", authMiddleware.required, (req, res) => ReportController
 router.post("/intelligence", authMiddleware.required, (req, res) => ReportController.marketIntelligence(req, res));
 router.post("/company-monitor", authMiddleware.required, (req, res) => ReportController.companyMonitor(req, res));
 
-// [NUEVO] Ruta para Reporte de Distribuidor
 router.post("/distributor-intelligence", authMiddleware.required, (req, res) => ReportController.distributorIntelligence(req, res));
 
 router.get("/:id", authMiddleware.required, (req, res) => ReportController.getReport(req, res));

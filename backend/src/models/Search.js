@@ -1,6 +1,3 @@
-// Search.js
-// Clase de dominio + esquema / modelo Mongoose para registrar búsquedas
-
 const mongoose = require('mongoose');
 
 class SearchEntity {
@@ -12,7 +9,7 @@ class SearchEntity {
             unit,
             stores
         };
-        this.results = results; // array de ObjectId o PriceRecordEntity
+        this.results = results;
         this.timestamp = timestamp;
     }
 }
@@ -30,7 +27,6 @@ const searchSchema = new mongoose.Schema({
     timestamp: { type: Date, default: Date.now }
 });
 
-// Index para consultas por userId y fecha
 searchSchema.index({ userId: 1, timestamp: -1 });
 
 const SearchModel = mongoose.model('Search', searchSchema);

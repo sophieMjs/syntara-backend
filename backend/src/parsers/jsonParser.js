@@ -1,4 +1,3 @@
-// parsers/jsonParser.js
 class JSONParser {
     parse(text) {
         if (!text) throw new Error("Respuesta vacía del modelo.");
@@ -17,7 +16,6 @@ class JSONParser {
                         try {
                             return JSON.parse(repaired);
                         } catch (repairErr) {
-                            // Continuar y lanzar el error genérico al final
                         }
                     }
                 }
@@ -31,15 +29,12 @@ class JSONParser {
 
         let repaired = jsonLike;
 
-        // Asegurar que las claves estén entre comillas
         repaired = repaired.replace(/([\{,]\s*)([A-Za-z0-9_]+)\s*:/g, (match, prefix, key) => {
             return `${prefix}"${key}":`;
         });
 
-        // Normalizar comillas simples en cadenas a comillas dobles
         repaired = repaired.replace(/'([^']*)'/g, '"$1"');
 
-        // Eliminar posibles comas colgantes
         repaired = repaired.replace(/,\s*([\}\]])/g, "$1");
 
         if (repaired !== jsonLike) {

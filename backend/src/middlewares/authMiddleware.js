@@ -1,12 +1,11 @@
 const jwt = require("jsonwebtoken");
 
 module.exports = {
-    // ✅ Permite autenticado o no
     optional: (req, res, next) => {
         const header = req.headers.authorization;
 
         if (!header) {
-            req.user = null; // invitado
+            req.user = null;
             return next();
         }
 
@@ -14,15 +13,14 @@ module.exports = {
 
         try {
             const decoded = jwt.verify(token, process.env.JWT_SECRET);
-            req.user = { id: decoded.id }; // Agregamos userId al request
+            req.user = { id: decoded.id };
         } catch (error) {
-            req.user = null; // token inválido → sigue como invitado
+            req.user = null;
         }
 
         next();
     },
 
-    // ✅ Para rutas que sí requieren autenticación
     required: (req, res, next) => {
         const header = req.headers.authorization;
 

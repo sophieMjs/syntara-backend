@@ -1,8 +1,4 @@
-// backend/src/services/reportService.js
-
 const PromptBuilderFactory = require("../factories/promptBuilderFactory");
-// const OpenAIService = require("./openaiService"); // ELIMINADO
-
 const ReportRepository = require("../repositories/reportRepo");
 const PriceRecordRepo = require("../repositories/priceRepo");
 const SearchRepo = require("../repositories/searchRepo");
@@ -14,10 +10,8 @@ class ReportService {
         this.searchRepo = SearchRepo;
 
         this.promptFactory = new PromptBuilderFactory();
-        // this.openAI = OpenAIService; // ELIMINADO
     }
 
-    // --- Reportes Anteriores (Sin IA) ---
 
     async generatePriceComparisonReport(userId, product) {
         const reportRecord = await this.reportRepo.createReport({
@@ -122,9 +116,7 @@ class ReportService {
         }
     }
 
-    // ---------------------------------------------------------------------------
-    // [NUEVO] Reporte de Distribuidor (Inteligencia de Mercado - Tendencias)
-    // ---------------------------------------------------------------------------
+
     async generateDistributorIntelligenceReport(userId, storeName) {
         const reportRecord = await this.reportRepo.createReport({
             userId,
@@ -133,31 +125,28 @@ class ReportService {
         });
 
         try {
-            // 1. DEMANDA: Obtener los productos más buscados relacionados con esta tienda
             const topSearches = await this.searchRepo.findTopSearchedProductsByStore(storeName, 20);
 
             if (!topSearches || topSearches.length === 0) {
                 throw new Error(`No hay suficientes datos de búsqueda para generar tendencias de ${storeName}.`);
             }
 
-            const topProductNames = topSearches.map(s => s._id); // Array de nombres de productos
+            const topProductNames = topSearches.map(s => s._id);
 
-            // 2. EVOLUCIÓN DE PRECIOS: Obtener historial para esos productos top
             const priceEvolution = await this.priceRepo.getPriceHistoryMany(topProductNames);
 
-            // 3. Combinar datos
             const trendsData = topSearches.map(searchItem => {
                 const historyData = priceEvolution.find(h => h._id === searchItem._id);
                 return {
-                    product: searchItem._id, // Categoría/Marca/Producto
-                    demandScore: searchItem.searchCount, // Cuántas veces se buscó
+                    product: searchItem._id,
+                    demandScore: searchItem.searchCount,
                     lastSearch: searchItem.lastSearchDate,
                     priceStats: {
                         avg: historyData?.avgPrice || 0,
                         min: historyData?.minPrice || 0,
                         max: historyData?.maxPrice || 0
                     },
-                    priceHistory: historyData?.history || [] // Evolución temporal
+                    priceHistory: historyData?.history || []
                 };
             });
 
@@ -167,10 +156,10 @@ class ReportService {
             await this.reportRepo.updateStatus(
                 reportRecord._id,
                 "ready",
-                null, // downloadUrl se generaría aquí si tuvieramos PDF
+                null,
                 {
                     store: storeName,
-                    trends: trendsData, // Lista con demanda y evolución de precios
+                    trends: trendsData,
                     analysis: analysisText
                 }
             );

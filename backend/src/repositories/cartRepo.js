@@ -1,4 +1,3 @@
-// backend/src/repositories/cartRepo.js
 const { CartModel } = require("../models/Cart");
 
 class CartRepository {

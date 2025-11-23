@@ -1,11 +1,5 @@
-// services/authService.js
-// Servicio encargado de autenticación y gestión de credenciales
-
 const jwt = require("jsonwebtoken");
 const UserRepository = require("../repositories/userRepo");
-// services/authService.js
-
-// ... (imports)
 
 class AuthService {
     constructor() {
@@ -14,18 +8,18 @@ class AuthService {
 
     async register({ name, lastname, email, password }) {
 
-        console.log("[DEBUG] Iniciando authService.register..."); // <-- AÑADE ESTO
+        console.log("[DEBUG] Iniciando authService.register...");
 
         const existing = await this.userRepository.findByEmail(email);
 
-        console.log("[DEBUG] findByEmail completado."); // <-- AÑADE ESTO
+        console.log("[DEBUG] findByEmail completado.");
 
         if (existing) {
-            console.log("[DEBUG] El usuario ya existe."); // <-- AÑADE ESTO
+            console.log("[DEBUG] El usuario ya existe.");
             throw new Error("El correo ya está registrado.");
         }
 
-        console.log("[DEBUG] Creando usuario en el repo..."); // <-- AÑADE ESTO
+        console.log("[DEBUG] Creando usuario en el repo...");
 
         const user = await this.userRepository.createUser({
             name,
@@ -34,7 +28,7 @@ class AuthService {
             password
         });
 
-        console.log("[DEBUG] Usuario creado exitosamente en el repo."); // <-- AÑADE ESTO
+        console.log("[DEBUG] Usuario creado exitosamente en el repo.");
 
         return {
             message: "Usuario registrado exitosamente",
@@ -42,14 +36,8 @@ class AuthService {
         };
     }
 
-    // ... (resto del archivo)
-
-    // services/authService.js
-
-// ... (imports y clase) ...
-
     async login(email, password) {
-        try { // <--- AÑADE UN TRY/CATCH AQUÍ DENTRO
+        try {
             console.log(`[DEBUG LOGIN] Buscando usuario: ${email}`);
             console.log(`[DEBUG LOGIN] Contraseña recibida (plain): ${password}`);
 
@@ -87,7 +75,6 @@ class AuthService {
                 }
             };
         } catch (err) {
-            // Re-lanzamos el error para que el controlador lo atrape
             throw err;
         }
     }

@@ -1,6 +1,3 @@
-// Report.js
-// Clase de dominio + esquema / modelo Mongoose para reportes generados
-
 const mongoose = require('mongoose');
 
 class ReportEntity {

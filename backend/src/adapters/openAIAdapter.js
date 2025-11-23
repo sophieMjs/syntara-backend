@@ -1,4 +1,3 @@
-// adapters/openAIAdapter.js
 const OpenAIClient = require("../clients/openAIClient");
 const ParserFactory = require("../factories/parserFactory");
 const { PriceRecordEntity } = require("../models/PriceRecord");
@@ -33,7 +32,6 @@ class OpenAIAdapter {
         console.log("📥 [OpenAIAdapter] Respuesta final recibida de OpenAI:");
         console.log(finalResponse);
 
-        // --- PARSEO ---
         try {
             const parser = this.parserFactory.getParser("json");
 
@@ -47,7 +45,7 @@ class OpenAIAdapter {
 
             const parsed = parser.parse(content);
 
-            //const parsed = parser.parse(finalResponse);
+
 
             return (parsed.results || []).map(r => new PriceRecordEntity(r));
 

@@ -1,5 +1,3 @@
-// middlewares/checkSubscriptionLimit.js
-
 const SubscriptionService = require("../services/subscriptionService");
 const subscriptionService = new SubscriptionService();
 

@@ -1,4 +1,3 @@
-// backend/src/controllers/cartController.js
 const CartService = require("../services/cartService");
 
 class CartController {
@@ -14,8 +13,6 @@ class CartController {
     async addItem(req, res) {
         try {
             console.log("📥 BODY QUE LLEGA AL BACKEND:", req.body);
-            // Esperamos que el frontend envíe el objeto del resultado de la búsqueda
-            // body: { product: "Arroz", price: 2000, store: "Exito", url: "...", id: "..." }
             const updatedCart = await CartService.addItem(req.user.id, req.body);
             res.json(updatedCart);
 

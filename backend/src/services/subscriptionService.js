@@ -1,18 +1,14 @@
-// services/subscriptionService.js
-
 const SubscriptionRepository = require("../repositories/subscriptionRepo");
 const UserRepository = require("../repositories/userRepo");
 const SearchRepository = require("../repositories/searchRepo");
 
 class SubscriptionService {
     constructor() {
-        this.subRepo = new SubscriptionRepository(); // [CORREGIDO] Instanciamos correctamente
-        this.userRepo = new UserRepository();        // [CORREGIDO] Instanciamos correctamente
-        this.searchRepo = SearchRepository;          // Este parece ser exportado ya instanciado en tu código original
+        this.subRepo = new SubscriptionRepository();
+        this.userRepo = new UserRepository();
+        this.searchRepo = SearchRepository;
 
-        // Planes base del productos
         this.plans = {
-            // [ELIMINADO] Plan Saver borrado por solicitud.
 
             Pro: {
                 price: 18800,
@@ -20,7 +16,7 @@ class SubscriptionService {
                 features: ["10 tiendas", "reportes", "favoritos"],
             },
             Enterprise: {
-                price: 0, // [MODIFICADO] Ahora es costo 0 (se otorga tras contacto/comprobación)
+                price: 0,
                 maxSearchesPerMonth: 5000,
                 features: [
                     "reportes avanzados",
@@ -37,7 +33,6 @@ class SubscriptionService {
             throw new Error("El plan no existe.");
         }
 
-        // Crear una nueva suscripción con los datos definidos en this.plans
         const subscription = await this.subRepo.createSubscription({
             type: planName,
             price: this.plans[planName].price,
@@ -45,7 +40,6 @@ class SubscriptionService {
             maxSearchesPerMonth: this.plans[planName].maxSearchesPerMonth
         });
 
-        // Asociar al usuario (Esto NO cambia el rol, solo el campo 'subscription')
         const updatedUser = await this.subRepo.attachSubscriptionToUser(
             userId,
             subscription._id
@@ -63,7 +57,6 @@ class SubscriptionService {
 
         const current = await this.getUserSubscription(userId);
 
-        // Si el usuario no tiene suscripción previa, usamos assignPlanToUser
         if (!current) {
             return this.assignPlanToUser(userId, newPlan);
         }
@@ -72,7 +65,6 @@ class SubscriptionService {
             throw new Error("El usuario ya tiene este plan.");
         }
 
-        // Actualizamos la suscripción existente con los nuevos valores (precio 0 si es Enterprise)
         const updated = await this.subRepo.updateSubscription(current._id, {
             type: newPlan,
             price: plan.price,
@@ -90,7 +82,6 @@ class SubscriptionService {
     async checkMonthlyLimit(userId) {
         const subscription = await this.getUserSubscription(userId);
 
-        // Si no tiene plan → modo FREE (ahora 3 búsquedas)
         if (!subscription) {
             const searches = await this.searchRepo.countSearchesToday(userId);
             const FREE_LIMIT = 3;
