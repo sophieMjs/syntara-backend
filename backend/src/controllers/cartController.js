@@ -4,7 +4,7 @@ const CartService = require("../services/cartService");
 class CartController {
     async getMyCart(req, res) {
         try {
-            const cartData = await CartService.getCartTotal(req.user.id);
+            const cartData = await CartService.getCartWithTotals(req.user.id);
             res.json(cartData);
         } catch (err) {
             res.status(500).json({ error: err.message });
@@ -13,10 +13,12 @@ class CartController {
 
     async addItem(req, res) {
         try {
+            console.log("📥 BODY QUE LLEGA AL BACKEND:", req.body);
             // Esperamos que el frontend envíe el objeto del resultado de la búsqueda
             // body: { product: "Arroz", price: 2000, store: "Exito", url: "...", id: "..." }
             const updatedCart = await CartService.addItem(req.user.id, req.body);
             res.json(updatedCart);
+
         } catch (err) {
             res.status(400).json({ error: err.message });
         }
