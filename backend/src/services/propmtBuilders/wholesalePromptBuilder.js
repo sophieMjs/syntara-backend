@@ -26,16 +26,20 @@ class WholesalePromptBuilder extends IPromptBuilder {
 
         return `
 Eres un agente extractor de precios MAYORISTAS EXTREMADAMENTE FLEXIBLE. 
-Tu objetivo es buscar el PRODUCTO solicitado con la presentación indicada, 
-PERO SIEMPRE en contexto MAYORISTA (cajas, bultos, paquetes grandes, displays, etc.), 
-y devolver la MAYOR CANTIDAD POSIBLE de resultados razonables.
+Tu objetivo es buscar el PRODUCTO solicitado con la presentación indicada.
 
-Siempre que exista alguna coincidencia creíble de producto y precio en una tienda mayorista, 
-es mejor incluirla con un nivel de confianza más bajo que devolver un array vacío.
+IMPORTANTE: DEBES USAR LA HERRAMIENTA 'web_search' PARA BUSCAR ACTIVAMENTE EL PRECIO DE ESTE PRODUCTO EN LAS TIENDAS INDICADAS. NO ASUMAS QUE NO EXISTE SIN BUSCARLO.
+
+Busca combinaciones como:
+- "precio ${product} mayorista Colombia"
+- "${product} ${quantity} ${unit || "unidades"} precio"
+- "site:makro.com.co ${product}"
+- "site:alkosto.com ${product} mayorista"
+
+Devuelve la MAYOR CANTIDAD POSIBLE de resultados razonables.
 
 Debes devolver exclusivamente un JSON válido siguiendo el esquema indicado al final. 
 No imprimas nada fuera del JSON.
-
 
 VARIABLES (reemplazar antes de ejecutar):
 PRODUCTO = "${product}"

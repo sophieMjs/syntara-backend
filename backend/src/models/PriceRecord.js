@@ -52,7 +52,8 @@ const priceRecordSchema = new mongoose.Schema({
     metadata: {
         queryId: { type: String, default: null },
         confidence: { type: Number, default: 1.0 }
-    }
+    },
+    productDetails: {type: String, default: null}
 });
 
 // Index para consultas por producto + tienda + fecha (útil en búsquedas)
