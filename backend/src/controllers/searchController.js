@@ -1,6 +1,8 @@
 // controllers/searchController.js
 const SearchService = require("../services/searchService");
 const searchService = new SearchService();
+const SubscriptionService = require("../services/subscriptionService");
+const subscriptionService = new SubscriptionService();
 
 exports.search = async (req, res) => {
     try {
@@ -47,6 +49,47 @@ exports.search = async (req, res) => {
             success: false,
             message: error.message
         });
+    }
+};
+
+
+exports.wholesaleSearch = async (req, res) => {
+    try {
+        const { product, quantity, unit, clientDate } = req.query;
+        const userId = req.user.id; // Requiere autenticación
+
+        // 1. Verificar Permiso Enterprise
+        const sub = await subscriptionService.getUserSubscription(userId);
+
+        if (!sub || sub.type !== 'Enterprise') {
+            return res.status(403).json({
+                success: false,
+                message: "Acceso denegado. La búsqueda mayorista requiere plan Enterprise."
+            });
+        }
+
+        const numericQuantity = quantity ? parseInt(quantity, 10) : undefined;
+
+        console.log("➡️ [SearchController] Búsqueda Mayorista solicitada:", { product, userId });
+
+        const data = await searchService.search({
+            userId,
+            product,
+            quantity: numericQuantity,
+            unit,
+            clientDate,
+            searchType: "wholesale" // <--- CLAVE: Pasamos el tipo
+        });
+
+        res.status(200).json({
+            success: true,
+            message: "Búsqueda mayorista realizada correctamente.",
+            data
+        });
+
+    } catch (error) {
+        console.error("❌ [SearchController] Error en búsqueda mayorista:", error);
+        res.status(500).json({ success: false, message: error.message });
     }
 };
 

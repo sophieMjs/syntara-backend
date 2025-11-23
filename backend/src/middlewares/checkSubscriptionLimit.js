@@ -5,6 +5,7 @@ const subscriptionService = new SubscriptionService();
 
 module.exports = async (req, res, next) => {
     try {
+        if (!req.user) return next();
         const limit = await subscriptionService.checkMonthlyLimit(req.user.id);
 
         if (!limit.allowed) {

@@ -14,13 +14,12 @@ class SearchService {
         console.log("🛠️ [SearchService] OpenAIAdapter inicializado.");
     }
 
-    async search({ userId, product, quantity = 1, unit = null, clientDate = null }) {
-        console.log("➡️ [SearchService] Ejecución del método search iniciada.");
+    async search({ userId, product, quantity = 1, unit = null, clientDate = null, searchType = "search" }) {
+        console.log(`➡️ [SearchService] Búsqueda iniciada. Tipo: ${searchType}`);
 
-        // 1. Construir prompt
-        const builder = this.promptFactory.getPromptBuilder("search");
+        // 1. Construir prompt usando el tipo (search o wholesale)
+        const builder = this.promptFactory.getPromptBuilder(searchType);
         const prompt = builder.buildPrompt({ product, quantity, unit });
-
         console.log("➡️ [SearchService] Prompt construido. Llamando a la IA...");
 
         // 2. Llamar IA

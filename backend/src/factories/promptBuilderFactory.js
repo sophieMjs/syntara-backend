@@ -1,8 +1,7 @@
 // factories/promptBuilderFactory.js
-// Factory que crea PromptBuilders desde la carpeta services/propmtBuilders
-
 const SearchPromptBuilder = require("../services/propmtBuilders/searchPromptBuilder");
 const ReportPromptBuilder = require("../services/propmtBuilders/reportPromptBuilder");
+const WholesalePromptBuilder = require("../services/propmtBuilders/wholesalePromptBuilder"); // <--- IMPORTAR
 
 class PromptBuilderFactory {
     getPromptBuilder(type) {
@@ -11,6 +10,8 @@ class PromptBuilderFactory {
                 return new SearchPromptBuilder();
             case "report":
                 return new ReportPromptBuilder();
+            case "wholesale": // <--- NUEVO CASO
+                return new WholesalePromptBuilder();
             default:
                 throw new Error(`Tipo de PromptBuilder desconocido: ${type}`);
         }
