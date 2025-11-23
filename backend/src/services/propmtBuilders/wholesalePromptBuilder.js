@@ -36,6 +36,7 @@ es mejor incluirla con un nivel de confianza más bajo que devolver un array vac
 Debes devolver exclusivamente un JSON válido siguiendo el esquema indicado al final. 
 No imprimas nada fuera del JSON.
 
+
 VARIABLES (reemplazar antes de ejecutar):
 PRODUCTO = "${product}"
 CANTIDAD = ${quantity}
